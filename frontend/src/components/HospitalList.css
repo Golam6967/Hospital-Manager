@@ -1,0 +1,66 @@
+.hospital-list {
+  background-color: var(--primary-bg);
+}
+
+.hospital-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--tertiary-bg);
+}
+
+.hospital-list h2 {
+  font-size: 24px;
+  color: var(--text-dark);
+  margin: 0;
+  font-weight: 700;
+}
+
+.list-stats {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.list-stats span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.list-stats strong {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.empty-state {
+  background-color: var(--secondary-bg);
+  border: 2px dashed var(--tertiary-bg);
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-light);
+  margin: 20px 0;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .hospital-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .list-stats {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+}

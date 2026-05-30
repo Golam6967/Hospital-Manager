@@ -1,0 +1,169 @@
+.create-hospital {
+  background-color: var(--primary-bg);
+}
+
+.create-hospital h2 {
+  font-size: 24px;
+  color: var(--text-dark);
+  margin: 0 0 24px 0;
+  font-weight: 700;
+}
+
+.create-form {
+  background-color: #ffffff;
+  border: 1px solid var(--tertiary-bg);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.form-section {
+  margin-bottom: 30px;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 20px;
+}
+
+.form-section h3 {
+  font-size: 18px;
+  color: var(--text-dark);
+  margin: 0 0 16px 0;
+  font-weight: 700;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--tertiary-bg);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="number"],
+.form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: var(--text-dark);
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.form-group input::placeholder {
+  color: var(--text-light);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(74, 124, 158, 0.1);
+  background-color: #ffffff;
+}
+
+.form-group label input[type="checkbox"] {
+  width: auto;
+  height: auto;
+  margin: 0;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0;
+}
+
+.form-group label span {
+  margin-left: 6px;
+}
+
+.alert {
+  padding: 14px 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.alert-error {
+  background-color: #fff5f5;
+  border: 2px solid var(--accent-red);
+  color: var(--accent-red);
+}
+
+.alert-success {
+  background-color: #f5fff5;
+  border: 2px solid var(--accent-green);
+  color: var(--accent-green);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--tertiary-bg);
+}
+
+.btn-submit {
+  background-color: var(--accent-green);
+  color: white;
+  padding: 12px 28px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #5a7e5f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .create-form {
+    padding: 16px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .btn-submit {
+    width: 100%;
+  }
+}

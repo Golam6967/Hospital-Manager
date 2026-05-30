@@ -1,0 +1,121 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--tertiary-bg);
+  border-radius: 8px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  padding: 10px 16px;
+  border: 1px solid var(--tertiary-bg);
+  background-color: #ffffff;
+  color: var(--text-dark);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-numbers {
+  display: flex;
+  gap: 6px;
+}
+
+.pagination-number {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--tertiary-bg);
+  background-color: #ffffff;
+  color: var(--text-dark);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-number:hover {
+  background-color: var(--secondary-bg);
+  border-color: var(--border-color);
+}
+
+.pagination-number.active {
+  background-color: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+}
+
+.pagination-ellipsis {
+  color: var(--text-light);
+  padding: 0 4px;
+  font-weight: 600;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--text-dark);
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.pagination-info strong {
+  color: var(--accent-blue);
+}
+
+@media (max-width: 768px) {
+  .pagination {
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .pagination-numbers {
+    gap: 4px;
+    order: 3;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
+  .pagination-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .pagination-number {
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+    margin-left: 0;
+    order: 4;
+    flex-basis: 100%;
+    text-align: center;
+    margin-top: 8px;
+  }
+}

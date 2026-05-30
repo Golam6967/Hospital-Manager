@@ -1,0 +1,202 @@
+.hospital-table-container {
+  background-color: #ffffff;
+  border: 1px solid var(--tertiary-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px var(--shadow);
+  margin-bottom: 24px;
+}
+
+.hospital-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.hospital-table thead {
+  background-color: var(--secondary-bg);
+  border-bottom: 2px solid var(--tertiary-bg);
+}
+
+.hospital-table thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--text-dark);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hospital-table tbody tr {
+  border-bottom: 1px solid var(--tertiary-bg);
+  transition: background-color 0.2s ease;
+}
+
+.hospital-table tbody tr:hover {
+  background-color: var(--primary-bg);
+}
+
+.hospital-table tbody tr.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.hospital-table tbody td {
+  padding: 12px 16px;
+  vertical-align: top;
+}
+
+.name-cell {
+  max-width: 200px;
+  word-wrap: break-word;
+}
+
+.name-cell strong {
+  display: block;
+  color: var(--accent-blue);
+  margin-bottom: 4px;
+}
+
+.name-cell small {
+  display: block;
+  color: var(--text-light);
+  font-size: 12px;
+}
+
+.email-cell {
+  font-size: 13px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-cell a {
+  color: var(--accent-blue);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.type-badge {
+  background-color: rgba(74, 124, 158, 0.15);
+  color: var(--accent-blue);
+}
+
+.agency-badge {
+  background-color: rgba(107, 142, 111, 0.15);
+  color: var(--accent-green);
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.private {
+  background-color: rgba(168, 90, 90, 0.15);
+  color: var(--accent-red);
+}
+
+.status-badge.public {
+  background-color: rgba(107, 142, 111, 0.15);
+  color: var(--accent-green);
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 6px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--tertiary-bg);
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.btn-view {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.btn-view:hover {
+  background-color: rgba(74, 124, 158, 0.1);
+}
+
+.btn-edit {
+  color: var(--accent-orange);
+  border-color: var(--accent-orange);
+}
+
+.btn-edit:hover {
+  background-color: rgba(184, 134, 11, 0.1);
+}
+
+.btn-delete {
+  color: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
+.btn-delete:hover:not(:disabled) {
+  background-color: rgba(168, 90, 90, 0.1);
+}
+
+.btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .hospital-table {
+    font-size: 12px;
+  }
+
+  .hospital-table thead th,
+  .hospital-table tbody td {
+    padding: 10px 12px;
+  }
+
+  .name-cell {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hospital-table-container {
+    overflow-x: auto;
+  }
+
+  .hospital-table {
+    min-width: 1000px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
