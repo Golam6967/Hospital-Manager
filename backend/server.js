@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./utils/databaseConnection");
 const hospitalRoutes = require("./routes/hospitalRoutes");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -41,6 +43,12 @@ app.get("/health", (req, res) => {
   res.json({ success: true, message: "Server is running" });
 });
 
+// Authentication routes
+app.use("/api/auth", authRoutes);
+
+// User management routes (Admin only)
+app.use("/api/users", userRoutes);
+
 // Hospital API routes
 app.use("/api/hospitals", hospitalRoutes);
 
@@ -49,7 +57,11 @@ app.get("/", (req, res) => {
   res.json({
     success: true,
     message: "Hospital Manager API",
-    documentation: "/api/hospitals/docs",
+    endpoints: {
+      auth: "/api/auth",
+      users: "/api/users",
+      hospitals: "/api/hospitals",
+    },
   });
 });
 
