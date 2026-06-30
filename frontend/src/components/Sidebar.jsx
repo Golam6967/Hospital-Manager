@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useLanguage } from '../context/LanguageContext'
 import './Sidebar.css'
 
 const icons = {
@@ -28,12 +29,13 @@ const icons = {
 
 function Sidebar({ activeTab, onTabChange }) {
   const [isOpen, setIsOpen] = useState(true)
+  const { t } = useLanguage()
 
   const tabs = [
-    { id: 'emergency', label: 'Emergency Search', icon: 'emergency', highlight: true },
-    { id: 'list', label: 'Hospital List', icon: 'list' },
-    { id: 'stats', label: 'Statistics', icon: 'stats' },
-    { id: 'create', label: 'Add Hospital', icon: 'create' },
+    { id: 'emergency', label: t('nav.emergency'), icon: 'emergency', highlight: true },
+    { id: 'list', label: t('nav.list'), icon: 'list' },
+    { id: 'stats', label: t('nav.stats'), icon: 'stats' },
+    { id: 'create', label: t('nav.create'), icon: 'create' },
   ]
 
   return (
