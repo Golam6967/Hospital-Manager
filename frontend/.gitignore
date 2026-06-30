@@ -13,9 +13,6 @@ __v0_jsx-dev-runtime.ts
 .env.development
 .env.production
 
-# Firebase config (contains API keys)
-config.js
-firebase.js
 
 # Common ignores
 node_modules/
