@@ -5,6 +5,8 @@ const TRANSLATIONS = {
     appTitle: 'Hospital Manager',
     appSubtitle: 'Bangladesh Hospital Management System',
 
+    'nav.dashboard': 'Dashboard',
+    'nav.home': 'Home',
     'nav.emergency': 'Emergency Care',
     'nav.list': 'Hospital List',
     'nav.stats': 'Statistics',
@@ -254,6 +256,8 @@ const TRANSLATIONS = {
     appTitle: 'হাসপাতাল ম্যানেজার',
     appSubtitle: 'বাংলাদেশ হাসপাতাল ব্যবস্থাপনা সিস্টেম',
 
+    'nav.dashboard': 'ড্যাশবোর্ড',
+    'nav.home': 'হোম',
     'nav.emergency': 'জরুরি চিকিৎসা',
     'nav.list': 'হাসপাতাল তালিকা',
     'nav.stats': 'পরিসংখ্যান',
