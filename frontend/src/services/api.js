@@ -1,4 +1,4 @@
-const BACKEND_BASE = "http://localhost:5000";
+const BACKEND_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 const HOSPITAL_BASE = `${BACKEND_BASE}/api/hospitals`;
 const AUTH_BASE = `${BACKEND_BASE}/api/auth`;
 
