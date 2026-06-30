@@ -3,20 +3,28 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Environment variables (contains sensitive data like API keys, Firebase credentials)
+# Environment variables
 .env
 .env.local
 .env.*.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
 
 # Firebase & Sensitive Credentials
 firebase.admin.json
 **/firebase.admin.json
 google-services.json
+*.pem
+*.key
 .firebase/
+secrets/
+credentials/
 
 # IDE
 .vscode/
@@ -24,9 +32,9 @@ google-services.json
 *.swp
 *.swo
 *~
-.DS_Store
 
 # OS
+.DS_Store
 Thumbs.db
 desktop.ini
 
@@ -34,12 +42,20 @@ desktop.ini
 logs/
 *.log
 
-# CSV files (optional - uncomment if you don't want to track)
-# *.csv
+# Excel / Office files (reports)
+*.xlsx
+*.xls
+*.csv
 
 # Build outputs
 dist/
 build/
+out/
+.next/
+
+# Test coverage
+coverage/
+.nyc_output/
 
 # Temporary files
 tmp/

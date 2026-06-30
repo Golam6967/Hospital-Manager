@@ -7,9 +7,20 @@ __v0_jsx-dev-runtime.ts
 .vercel/
 
 # Environment variables
+.env
 .env*.local
+.env.local
+.env.development
+.env.production
+
+# Firebase config (contains API keys)
+config.js
+firebase.js
 
 # Common ignores
-node_modules
+node_modules/
 .next/
+out/
+build/
 .DS_Store
+*.log
