@@ -1,0 +1,219 @@
+/* ── Right sidebar — no backdrop, clicking outside does nothing ───────────── */
+.map-panel-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 440px;
+  z-index: 1100;
+  animation: slideInRight 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* ── Panel fills the full sidebar height ─────────────────────────────────── */
+.map-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  overflow: hidden;
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.14), -2px 0 6px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.map-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: var(--primary);
+  color: white;
+  flex-shrink: 0;
+}
+
+.map-panel-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.map-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Map tile area ───────────────────────────────────────────────────────── */
+.map-container {
+  flex: 1;
+  min-height: 420px;
+  width: 100%;
+  z-index: 0;
+}
+
+/* ── Loading state ───────────────────────────────────────────────────────── */
+.map-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 300px;
+  color: var(--text-secondary);
+}
+
+/* ── Status bar (while waiting for user location) ────────────────────────── */
+.map-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ── Location access denied warning ─────────────────────────────────────── */
+.map-location-error {
+  padding: 0.5rem 1rem;
+  background: var(--danger-light);
+  color: var(--danger);
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ── Geocode failure fallback ────────────────────────────────────────────── */
+.map-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 300px;
+  padding: 2rem;
+  background: var(--bg-muted);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.map-fallback-link {
+  color: var(--primary);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.map-fallback-link:hover {
+  color: var(--primary-dark);
+}
+
+/* ── Map legend bar ──────────────────────────────────────────────────────── */
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-muted);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.legend-user     { color: var(--primary); font-weight: 600; }
+.legend-hospital { color: var(--danger);  font-weight: 600; }
+.legend-note     { margin-left: auto; font-style: italic; }
+
+/* ── Copy Google Maps link row ───────────────────────────────────────────── */
+.map-copy-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.map-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.map-copy-btn:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.map-copy-btn--copied {
+  background: var(--success-light);
+  border-color: var(--success);
+  color: var(--success-text);
+}
+
+.map-copy-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Pulse animation for live blue dot (injected into Leaflet divIcon) ───── */
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(29, 111, 165, 0.5); }
+  70%  { box-shadow: 0 0 0 10px rgba(29, 111, 165, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(29, 111, 165, 0);   }
+}
+
+/* ── Mobile: slide up as a bottom sheet ─────────────────────────────────── */
+@media (max-width: 540px) {
+  .map-panel-overlay {
+    top: auto;
+    left: 0;
+    width: 100%;
+    height: 80vh;
+    animation: slideInBottom 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  @keyframes slideInBottom {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .map-panel {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    height: 100%;
+  }
+}

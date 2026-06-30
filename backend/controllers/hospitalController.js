@@ -1,4 +1,5 @@
 const Hospital = require("../models/Hospital");
+const { geocodeHospital } = require("../utils/geocoder");
 
 /**
  * GET all hospitals with pagination
@@ -294,6 +295,102 @@ exports.deleteAllHospitals = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * GET hospitals for emergency search, sorted by score descending
+ * Query params: problemType (optional), description (optional)
+ * Example: /api/hospitals/emergency?problemType=neurological
+ */
+exports.getEmergencyHospitals = async (req, res) => {
+  try {
+    const { problemType } = req.query;
+    const select = 'name nameBangla type agency division district upazila score private email specialties emergencyCriteria latitude longitude';
+
+    let hospitals = [];
+    let useTypeScore = false;
+
+    if (problemType && problemType !== 'general') {
+      const criteriaField = `emergencyCriteria.${problemType}`;
+
+      // Try new per-specialty criteria first
+      hospitals = await Hospital.find({ [criteriaField]: { $gt: 0 } })
+        .sort({ [criteriaField]: -1, name: 1 })
+        .limit(30)
+        .select(select)
+        .lean();
+
+      if (hospitals.length > 0) {
+        useTypeScore = true;
+      } else {
+        // Fall back to legacy specialties array
+        hospitals = await Hospital.find({ specialties: problemType })
+          .sort({ score: -1, name: 1 })
+          .limit(30)
+          .select(select)
+          .lean();
+      }
+    }
+
+    if (hospitals.length === 0) {
+      hospitals = await Hospital.find()
+        .sort({ score: -1, name: 1 })
+        .limit(30)
+        .select(select)
+        .lean();
+    }
+
+    // Attach the relevant score so the frontend can display it
+    if (useTypeScore && problemType) {
+      hospitals = hospitals.map(h => ({
+        ...h,
+        score: (h.emergencyCriteria instanceof Map
+          ? h.emergencyCriteria.get(problemType)
+          : h.emergencyCriteria?.[problemType]) ?? h.score ?? 50,
+      }));
+    }
+
+    res.json({
+      success: true,
+      problemType: problemType || 'general',
+      total: hospitals.length,
+      data: hospitals,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * POST geocode a hospital by ID using Nominatim (address-based, not name-based)
+ * Saves the result to the hospital document and returns the updated record.
+ * Example: POST /api/hospitals/6123abc456def/geocode
+ */
+exports.geocodeHospitalById = async (req, res) => {
+  try {
+    const hospital = await Hospital.findById(req.params.id);
+    if (!hospital) {
+      return res.status(404).json({ lat: null, lon: null, fallback: true });
+    }
+
+    // Return cached coords immediately — never re-geocode
+    if (hospital.latitude != null && hospital.longitude != null) {
+      return res.json({ lat: hospital.latitude, lon: hospital.longitude });
+    }
+
+    const result = await geocodeHospital(hospital);
+    if (!result) {
+      return res.json({ lat: null, lon: null, fallback: true });
+    }
+
+    hospital.latitude = result.lat;
+    hospital.longitude = result.lon;
+    await hospital.save();
+
+    res.json({ lat: result.lat, lon: result.lon });
+  } catch (error) {
+    res.json({ lat: null, lon: null, fallback: true });
   }
 };
 

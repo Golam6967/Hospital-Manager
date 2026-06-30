@@ -1,0 +1,21 @@
+{
+  "name": "hospital-service",
+  "version": "1.0.0",
+  "description": "Hospital Manager Hospital Service — Mongoose + MongoDB Atlas",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "mongoose": "^8.0.0",
+    "helmet": "^7.0.0",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}

@@ -62,6 +62,34 @@ const hospitalSchema = new mongoose.Schema(
       required: false,
       default: false,
       index: true
+    },
+    score: {
+      type: Number,
+      required: false,
+      default: 50,
+      min: 0,
+      max: 100,
+      index: true
+    },
+    specialties: {
+      type: [String],
+      default: []
+    },
+    // Per-specialty scores: { cardiac: 85, burn: 60, ... }
+    emergencyCriteria: {
+      type: Map,
+      of: { type: Number, min: 0, max: 100 },
+      default: {}
+    },
+    latitude: {
+      type: Number,
+      required: false,
+      default: null
+    },
+    longitude: {
+      type: Number,
+      required: false,
+      default: null
     }
   },
   {

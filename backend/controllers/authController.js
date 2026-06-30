@@ -1,413 +1,232 @@
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
+const { getAdmin } = require('../config/firebase');
+const User = require('../models/User');
 
-// Generate Access Token (expires in 15 minutes)
-const generateAccessToken = (userId, role) => {
-  return jwt.sign({ userId, role }, process.env.JWT_SECRET, {
-    expiresIn: "15m",
+const ACCESS_SECRET  = () => process.env.JWT_ACCESS_SECRET;
+const REFRESH_SECRET = () => process.env.JWT_REFRESH_SECRET;
+
+function generateAccessToken(userId, role) {
+  return jwt.sign({ userId, role }, ACCESS_SECRET(), { expiresIn: '15m' });
+}
+
+function generateRefreshToken(userId, role) {
+  return jwt.sign({ userId, role }, REFRESH_SECRET(), { expiresIn: '7d' });
+}
+
+function setRefreshCookie(res, token) {
+  res.cookie('refreshToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-};
+}
 
-// Generate Refresh Token (expires in 7 days)
-const generateRefreshToken = (userId, role) => {
-  return jwt.sign({ userId, role }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-};
-
-// ============= REGISTER =============
+// POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, role, department } =
-      req.body;
-
-    // Validation
+    const { firstName, lastName, email, password, role } = req.body;
     if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide all required fields",
-      });
+      return res.status(400).json({ success: false, message: 'firstName, lastName, email, and password are required' });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: "Email already registered",
-      });
-    }
-
-    // Create new user
-    const user = new User({
-      firstName,
-      lastName,
+    const admin = getAdmin();
+    const fbUser = await admin.auth().createUser({
       email,
       password,
-      phone: phone || undefined,
-      role: role || "user",
-      department: department || undefined,
+      displayName: `${firstName} ${lastName}`,
     });
 
-    await user.save();
+    await User.create({ firebaseUid: fbUser.uid, email, firstName, lastName, role: role || 'user' });
 
-    // Generate tokens
-    const accessToken = generateAccessToken(user._id, user.role);
-    const refreshToken = generateRefreshToken(user._id, user.role);
-
-    // Save refresh token to database
-    user.refreshTokens.push({ token: refreshToken });
-    await user.save();
-
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: {
-        user: user.toJSON(),
-        accessToken,
-        refreshToken,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error registering user",
-      error: error.message,
-    });
+    res.status(201).json({ success: true, message: 'Registered successfully' });
+  } catch (err) {
+    if (err.code === 'auth/email-already-exists' || err.code === 11000) {
+      return res.status(409).json({ success: false, message: 'Email already in use', code: 'EMAIL_TAKEN' });
+    }
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ============= LOGIN =============
+// POST /api/auth/login  — body: { idToken }
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    // Validation
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide email and password",
-      });
+    console.log("Ekhnae ashche kina ke jane ");
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ success: false, message: 'idToken is required' });
     }
 
-    // Find user and select password field
-    const user = await User.findOne({ email }).select("+password");
+    const admin = getAdmin();
+    const decoded = await admin.auth().verifyIdToken(idToken);
 
+    let user = await User.findOne({ firebaseUid: decoded.uid });
+
+    // Auto-provision Google / social sign-in users
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
+      const displayName = decoded.name || decoded.email?.split('@')[0] || 'User';
+      const parts = displayName.split(' ');
+      user = await User.create({
+        firebaseUid: decoded.uid,
+        email: decoded.email,
+        firstName: parts[0] || 'User',
+        lastName: parts.slice(1).join(' ') || '',
+        role: 'user',
       });
     }
 
-    // Check if user is active
     if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: "User account is inactive",
-      });
+      return res.status(403).json({ success: false, message: 'Account is deactivated' });
     }
 
-    // Compare passwords
-    const isPasswordMatch = await user.matchPassword(password);
+    const accessToken  = generateAccessToken(user._id.toString(), user.role);
+    const refreshToken = generateRefreshToken(user._id.toString(), user.role);
 
-    if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    // Generate tokens
-    const accessToken = generateAccessToken(user._id, user.role);
-    const refreshToken = generateRefreshToken(user._id, user.role);
-
-    // Save refresh token to database
     user.refreshTokens.push({ token: refreshToken });
     user.lastLogin = new Date();
     await user.save();
 
-    res.status(200).json({
+    setRefreshCookie(res, refreshToken);
+
+    res.json({
       success: true,
-      message: "User logged in successfully",
       data: {
-        user: user.toJSON(),
         accessToken,
-        refreshToken,
+        user: user.toJSON(),
       },
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error logging in",
-      error: error.message,
-    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ============= REFRESH TOKEN =============
+// POST /api/auth/refresh-token
 exports.refreshAccessToken = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(400).json({
-        success: false,
-        message: "Refresh token is required",
-      });
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Refresh token required' });
     }
 
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, REFRESH_SECRET());
+    } catch {
+      return res.status(401).json({ success: false, message: 'Invalid or expired refresh token', code: 'TOKEN_EXPIRED' });
+    }
 
-    // Find user
     const user = await User.findById(decoded.userId);
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found",
-      });
+    if (!user || !user.isActive) {
+      return res.status(401).json({ success: false, message: 'User not found or inactive' });
     }
 
-    // Check if refresh token exists in database
-    const tokenExists = user.refreshTokens.some(
-      (rt) => rt.token === refreshToken,
-    );
-
+    const tokenExists = user.refreshTokens.some(rt => rt.token === token);
     if (!tokenExists) {
-      return res.status(401).json({
-        success: false,
-        message: "Refresh token not found. Please login again.",
-      });
+      return res.status(401).json({ success: false, message: 'Refresh token revoked. Please log in again.' });
     }
 
-    // Generate new access token
-    const newAccessToken = generateAccessToken(user._id, user.role);
+    // Rotate: remove old, issue new
+    user.refreshTokens = user.refreshTokens.filter(rt => rt.token !== token);
+    const newAccessToken  = generateAccessToken(user._id.toString(), user.role);
+    const newRefreshToken = generateRefreshToken(user._id.toString(), user.role);
+    user.refreshTokens.push({ token: newRefreshToken });
+    await user.save();
 
-    res.status(200).json({
-      success: true,
-      message: "Access token refreshed successfully",
-      data: {
-        accessToken: newAccessToken,
-      },
-    });
-  } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({
-        success: false,
-        message: "Refresh token has expired. Please login again.",
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Error refreshing token",
-      error: error.message,
-    });
+    setRefreshCookie(res, newRefreshToken);
+    res.json({ success: true, data: { accessToken: newAccessToken } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ============= LOGOUT =============
+// POST /api/auth/logout
 exports.logout = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    const userId = req.userId;
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
+    const user = await User.findById(req.userId);
 
-    if (!refreshToken) {
-      return res.status(400).json({
-        success: false,
-        message: "Refresh token is required",
-      });
+    if (user && token) {
+      user.refreshTokens = user.refreshTokens.filter(rt => rt.token !== token);
+      await user.save();
     }
 
-    // Find user and remove refresh token
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found",
-      });
+    if (user) {
+      const admin = getAdmin();
+      await admin.auth().revokeRefreshTokens(user.firebaseUid).catch(() => {});
     }
 
-    user.refreshTokens = user.refreshTokens.filter(
-      (rt) => rt.token !== refreshToken,
-    );
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Logged out successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error logging out",
-      error: error.message,
-    });
+    res.clearCookie('refreshToken');
+    res.json({ success: true, message: 'Logged out successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ============= LOGOUT ALL DEVICES =============
+// POST /api/auth/logout-all
 exports.logoutAllDevices = async (req, res) => {
   try {
-    const userId = req.userId;
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found",
-      });
+    const user = await User.findById(req.userId);
+    if (user) {
+      user.refreshTokens = [];
+      await user.save();
+      const admin = getAdmin();
+      await admin.auth().revokeRefreshTokens(user.firebaseUid).catch(() => {});
     }
-
-    // Clear all refresh tokens
-    user.refreshTokens = [];
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Logged out from all devices successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error logging out from all devices",
-      error: error.message,
-    });
+    res.clearCookie('refreshToken');
+    res.json({ success: true, message: 'Logged out from all devices' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ============= GET CURRENT USER =============
+// GET /api/auth/me
 exports.getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: {
-        user: user.toJSON(),
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error fetching user",
-      error: error.message,
-    });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    res.json({ success: true, data: user.toJSON() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ============= UPDATE USER PROFILE =============
+// PUT /api/auth/profile
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.userId;
     const { firstName, lastName, phone, department } = req.body;
-
     const user = await User.findByIdAndUpdate(
-      userId,
-      {
-        ...(firstName && { firstName }),
-        ...(lastName && { lastName }),
-        ...(phone && { phone }),
-        ...(department && { department }),
-      },
-      { new: true, runValidators: true },
+      req.userId,
+      { ...(firstName && { firstName }), ...(lastName && { lastName }), ...(phone && { phone }), ...(department && { department }) },
+      { new: true, runValidators: true }
     );
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      data: {
-        user: user.toJSON(),
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error updating profile",
-      error: error.message,
-    });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    res.json({ success: true, data: user.toJSON() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ============= CHANGE PASSWORD =============
+// POST /api/auth/change-password
 exports.changePassword = async (req, res) => {
   try {
-    const userId = req.userId;
-    const { currentPassword, newPassword, confirmPassword } = req.body;
-
-    // Validation
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "All password fields are required",
-      });
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'newPassword must be at least 6 characters' });
     }
 
-    if (newPassword !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "New password and confirm password do not match",
-      });
-    }
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "New password must be at least 6 characters",
-      });
-    }
+    const admin = getAdmin();
+    await admin.auth().updateUser(user.firebaseUid, { password: newPassword });
 
-    // Find user and select password
-    const user = await User.findById(userId).select("+password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Verify current password
-    const isPasswordMatch = await user.matchPassword(currentPassword);
-
-    if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Current password is incorrect",
-      });
-    }
-
-    // Update password
-    user.password = newPassword;
+    // Revoke all sessions for security
+    user.refreshTokens = [];
     await user.save();
+    res.clearCookie('refreshToken');
 
-    res.status(200).json({
-      success: true,
-      message: "Password changed successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error changing password",
-      error: error.message,
-    });
+    res.json({ success: true, message: 'Password changed. Please log in again.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

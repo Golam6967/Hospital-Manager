@@ -1,53 +1,73 @@
 import React, { useState } from 'react'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { LanguageProvider } from './context/LanguageContext'
+import { ThemeProvider } from './context/ThemeContext'
+import AuthPage from './components/auth/AuthPage'
 import Header from './components/Header'
-import Sidebar from './components/Sidebar'
+import Dashboard from './components/Dashboard'
 import HospitalList from './components/HospitalList'
 import Statistics from './components/Statistics'
 import CreateHospital from './components/CreateHospital'
+import EmergencySearch from './components/EmergencySearch'
 import ErrorBoundary from './components/ErrorBoundary'
+import LoadingSpinner from './components/LoadingSpinner'
 import './App.css'
 
-function App() {
-  const [activeTab, setActiveTab] = useState('list')
+function AppShell() {
+  const { user, loading } = useAuth()
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
-  const handleRefresh = () => {
-    setRefreshTrigger(prev => prev + 1)
+  if (loading) {
+    return (
+      <div className="auth-loading-screen">
+        <LoadingSpinner />
+      </div>
+    )
   }
+
+  if (!user) {
+    return <AuthPage />
+  }
+
+  const handleRefresh = () => setRefreshTrigger(prev => prev + 1)
 
   const renderContent = () => {
     try {
       switch (activeTab) {
-        case 'list':
-          return <HospitalList key={refreshTrigger} onRefresh={handleRefresh} />
-        case 'stats':
-          return <Statistics />
-        case 'create':
-          return <CreateHospital onSuccess={() => {
-            handleRefresh()
-            setActiveTab('list')
-          }} />
-        default:
-          return <HospitalList key={refreshTrigger} onRefresh={handleRefresh} />
+        case 'dashboard': return <Dashboard user={user} onNavigate={setActiveTab} />
+        case 'list':      return <HospitalList key={refreshTrigger} onRefresh={handleRefresh} />
+        case 'stats':     return <Statistics />
+        case 'create':    return <CreateHospital onSuccess={() => { handleRefresh(); setActiveTab('list') }} />
+        case 'emergency': return <EmergencySearch />
+        default:          return <Dashboard user={user} onNavigate={setActiveTab} />
       }
     } catch (error) {
-      console.error('[v0] Error rendering content:', error)
       return <div className="error-container">Error loading content</div>
     }
   }
 
   return (
-    <ErrorBoundary>
-      <div className="app-container">
-        <Header />
-        <div className="app-main">
-          <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-          <main className="app-content">
-            {renderContent()}
-          </main>
-        </div>
-      </div>
-    </ErrorBoundary>
+    <div className="app-container">
+      <Header activeTab={activeTab} onTabChange={setActiveTab} user={user} />
+      <main className="app-content">
+        {renderContent()}
+      </main>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <LanguageProvider>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <AppShell />
+          </AuthProvider>
+        </ErrorBoundary>
+      </ThemeProvider>
+    </LanguageProvider>
   )
 }
 

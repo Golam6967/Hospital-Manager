@@ -6,12 +6,14 @@ const {
   filterHospitals,
   getDistinctValues,
   getStatistics,
+  getEmergencyHospitals,
   createHospital,
   updateHospital,
   deleteHospital,
   deleteByFilter,
   deleteAllHospitals,
   getDocumentation,
+  geocodeHospitalById,
 } = require("../controllers/hospitalController");
 
 // ============= GET ROUTES =============
@@ -25,6 +27,11 @@ router.get("/docs", getDocumentation);
  * GET statistics about hospitals
  */
 router.get("/stats", getStatistics);
+
+/**
+ * GET hospitals for emergency patient search (sorted by admin score)
+ */
+router.get("/emergency", getEmergencyHospitals);
 
 /**
  * GET all hospitals with pagination
@@ -47,6 +54,11 @@ router.get("/distinct/:field", getDistinctValues);
 router.get("/filter/advanced", filterHospitals);
 
 // ============= POST ROUTES =============
+
+/**
+ * GEOCODE hospital by ID using Nominatim (address-based)
+ */
+router.post("/:id/geocode", geocodeHospitalById);
 
 /**
  * CREATE a new hospital

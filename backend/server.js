@@ -1,85 +1,45 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const connectDB = require("./utils/databaseConnection");
-const hospitalRoutes = require("./routes/hospitalRoutes");
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const connectDB = require('./utils/databaseConnection');
+const { initFirebase } = require('./config/firebase');
+const hospitalRoutes = require('./routes/hospitalRoutes');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
-// ============= DATABASE CONNECTION =============
 connectDB();
+initFirebase();
 
-// ============= MIDDLEWARE =============
-
-// CORS Configuration
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "*",
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  optionsSuccessStatus: 200,
-};
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
-// Apply CORS middleware
-app.use(cors(corsOptions));
-
-// Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Request logging middleware (optional)
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// ============= ROUTES =============
+app.get('/health', (req, res) => res.json({ success: true, message: 'Server is running' }));
 
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.json({ success: true, message: "Server is running" });
-});
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/hospitals', hospitalRoutes);
 
-// Authentication routes
-app.use("/api/auth", authRoutes);
-
-// User management routes (Admin only)
-app.use("/api/users", userRoutes);
-
-// Hospital API routes
-app.use("/api/hospitals", hospitalRoutes);
-
-// Root endpoint
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Hospital Manager API",
-    endpoints: {
-      auth: "/api/auth",
-      users: "/api/users",
-      hospitals: "/api/hospitals",
-    },
-  });
-});
-
-// ============= ERROR HANDLING =============
-
-// 404 Not Found Handler
 app.use(notFoundHandler);
-
-// Global Error Handler (must be last)
 app.use(errorHandler);
-
-// ============= START SERVER =============
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`\n✓ Server running on http://localhost:${PORT}`);
-  console.log(
-    `✓ API Docs available at http://localhost:${PORT}/api/hospitals/docs`,
-  );
-  console.log(`✓ CORS enabled\n`);
 });

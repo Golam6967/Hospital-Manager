@@ -1,0 +1,85 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: hm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hm_network
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: hm_auth
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./services/auth-service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hm_network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  hospital-service:
+    build:
+      context: ./services/hospital-service
+      dockerfile: Dockerfile
+    container_name: hm_hospital
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./services/hospital-service/.env
+    networks:
+      - hm_network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    container_name: hm_gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./services/gateway/.env
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      hospital-service:
+        condition: service_healthy
+    networks:
+      - hm_network
+
+volumes:
+  postgres_data:
+
+networks:
+  hm_network:
+    driver: bridge

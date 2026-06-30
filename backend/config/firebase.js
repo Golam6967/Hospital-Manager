@@ -1,0 +1,23 @@
+const admin = require('firebase-admin');
+
+let firebaseApp;
+
+function initFirebase() {
+  if (firebaseApp) return firebaseApp;
+
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!serviceAccountJson) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON is required');
+
+  firebaseApp = admin.initializeApp({
+    credential: admin.credential.cert(JSON.parse(serviceAccountJson)),
+  });
+
+  return firebaseApp;
+}
+
+function getAdmin() {
+  if (!firebaseApp) initFirebase();
+  return admin;
+}
+
+module.exports = { initFirebase, getAdmin };

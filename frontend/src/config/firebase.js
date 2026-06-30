@@ -1,0 +1,16 @@
+import { initializeApp, getApps, getApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyCTBndVpqemfFBZbXrlaW6N5xgGG9Gk7LQ',
+  authDomain: 'remontada-1240e.firebaseapp.com',
+  projectId: 'remontada-1240e',
+  storageBucket: 'remontada-1240e.firebasestorage.app',
+  messagingSenderId: '922091661394',
+  appId: '1:922091661394:web:0981d2380040851e73178b',
+  measurementId: 'G-3JJSPSC4HC',
+}
+
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
+export const auth = getAuth(app)
+export default app
