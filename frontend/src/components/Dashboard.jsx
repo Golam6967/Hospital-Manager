@@ -34,11 +34,6 @@ function ClockWidget({ now }) {
   )
 }
 
-function getGreeting(hour) {
-  if (hour < 12) return 'Good Morning'
-  if (hour < 17) return 'Good Afternoon'
-  return 'Good Evening'
-}
 
 // ── Custom tooltip shared style ───────────────────────────────────────────────
 function ChartTooltip({ active, payload, label, unit = '' }) {
@@ -299,38 +294,11 @@ function TickerStrip({ stats }) {
   )
 }
 
-// ── Nav cards ────────────────────────────────────────────────────────────────
-const NAV_CARDS = [
-  {
-    id: 'emergency', label: 'Emergency Search',
-    desc: 'Find the best hospital for your medical problem right now',
-    colorClass: 'nav-emergency',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
-  },
-  {
-    id: 'list', label: 'Hospital List',
-    desc: 'Browse, search and filter all hospitals across Bangladesh',
-    colorClass: 'nav-list',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/></svg>,
-  },
-  {
-    id: 'stats', label: 'Statistics',
-    desc: 'View analytics and distribution of hospitals by region and type',
-    colorClass: 'nav-stats',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-  },
-  {
-    id: 'create', label: 'Add Hospital',
-    desc: 'Register a new hospital to the national database',
-    colorClass: 'nav-create',
-    icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/><line x1="12" y1="5" x2="12" y2="9"/><line x1="10" y1="7" x2="14" y2="7"/></svg>,
-  },
-]
-
 // ── Dashboard ────────────────────────────────────────────────────────────────
 function Dashboard({ user, onNavigate }) {
   const now = useClock()
   const [stats, setStats] = useState(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     apiService.getStatistics()
@@ -338,8 +306,35 @@ function Dashboard({ user, onNavigate }) {
       .catch(() => {})
   }, [])
 
-  const greeting  = getGreeting(now.getHours())
+  const greeting  = t(`dash.greeting.${now.getHours() < 12 ? 'morning' : now.getHours() < 17 ? 'afternoon' : 'evening'}`)
   const firstName = user?.firstName || 'there'
+
+  const NAV_CARDS = [
+    {
+      id: 'emergency', label: t('nav.emergency'),
+      desc: t('dash.nav.emergency.desc'),
+      colorClass: 'nav-emergency',
+      icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+    },
+    {
+      id: 'list', label: t('nav.list'),
+      desc: t('dash.nav.list.desc'),
+      colorClass: 'nav-list',
+      icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/></svg>,
+    },
+    {
+      id: 'stats', label: t('nav.stats'),
+      desc: t('dash.nav.stats.desc'),
+      colorClass: 'nav-stats',
+      icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+    },
+    {
+      id: 'create', label: t('nav.create'),
+      desc: t('dash.nav.create.desc'),
+      colorClass: 'nav-create',
+      icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/><line x1="12" y1="5" x2="12" y2="9"/><line x1="10" y1="7" x2="14" y2="7"/></svg>,
+    },
+  ]
 
   return (
     <div className="dashboard">
@@ -367,7 +362,7 @@ function Dashboard({ user, onNavigate }) {
       <div className="dash-body">
         {/* Left nav */}
         <aside className="dash-nav-aside">
-          <div className="dash-section-label">Navigate</div>
+          <div className="dash-section-label">{t('dash.navigate')}</div>
           <div className="dash-nav-list">
             {NAV_CARDS.map((card, i) => (
               <button
